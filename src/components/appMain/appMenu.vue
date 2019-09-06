@@ -1,21 +1,22 @@
 <!-- Created by macmzon@163.com-->
-<!--vue页面初始化模板-->
 <template>
   <div class="appMenu">
     <div v-transfer-dom>
       <popup v-model="showBack"></popup>
     </div>
     <appHeader :headerInfo="data.headerInfo"></appHeader>
-    <div class="container">
-      <Button type="primary" round @click.active="back()">上一页</Button>
-      <Button type="success" round @click.active="start()">下一页</Button>
+    <div class="menuMain container">
+      <div class="">
+      </div>
     </div>
   </div>
 </template>
 
 <script>
+let Base64 = require('js-base64').Base64
 import { Button } from 'iview'
 import { Popup } from 'vux'
+import { _getMenu } from '@/common/js/appMain/function'
 import appHeader from '@/components/appConfig/appHeader.vue'
 export default {
   name: 'appMenu',
@@ -23,26 +24,24 @@ export default {
     return {
       showBack: false,
       data: {
-        headerInfo: this.$route.meta
+        user: {},
+        headerInfo: this.$route.meta,
+        userLogin: localStorage.getItem('userLogin'),     // 获取客户登录状态
+        menuShow: false,
+        Menu: []
       }
     }
   },
   created () {
     /*自定义顶部header两侧按钮事件+页面左右滑动事件*/
     this.$route.meta.header.leftFuc = this.back                 // header左侧返回按钮事件
-    this.$route.meta.header.rightFuc = this.getMenu             // header右侧菜单按钮事件
-    this.$route.meta.touch.leftFuc = this.start                 // 页面向左滑动事件
     this.$route.meta.touch.rightFuc = this.back                 // 页面向右滑动事件
+    if (this.data.userLogin) {
+      this.data.user = JSON.parse(localStorage.getItem(this.data.userLogin))       // 获取客户信息
+    }
+    this.getMenu()
   },
   methods: {
-    start () {
-      this.$push({
-        path: '/appSet',
-        query: {
-          type: '3'
-        }
-      }, this)
-    },
     back () {
       this.$back({
         path: '/appIndex',
@@ -52,12 +51,13 @@ export default {
       }, this)
     },
     getMenu () {
-      this.$push({
-        path: '/appMenu',
-        query: {
-          type: '3'
-        }
-      }, this)
+      _getMenu((res) => {
+        this.data.Menu = res.course
+      })
+    },
+    getCourseFlag (flag) {
+      flag = Base64.encode(flag)
+      return !this.data.user.course[flag] ? 'unlearn' : 'learning'
     }
   },
   components: {
@@ -67,5 +67,5 @@ export default {
 </script>
 
 <style lang="stylus" rel="stylesheet/stylus">
-
+@import "stylus/appMenu.styl"
 </style>
